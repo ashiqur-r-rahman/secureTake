@@ -1,0 +1,17 @@
+{
+  "name": "secure-dynamic-attendance-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Secure Dynamic Attendance System (SDAS)",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace=@sdas/api",
+    "start": "npm run start --workspace=@sdas/api",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+
