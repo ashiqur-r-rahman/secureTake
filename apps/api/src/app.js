@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { sessionRouter } from './routes/sessions.js';
 import { checkinRouter } from './routes/checkins.js';
 import { reportRouter } from './routes/reports.js';
+import { errorHandler } from './app/errorHandler.js';
 
 export function createApp() {
   const app = express();
@@ -17,6 +18,7 @@ export function createApp() {
   app.use('/api/sessions', sessionRouter);
   app.use('/api/checkins', checkinRouter);
   app.use('/api/reports', reportRouter);
+  app.use(errorHandler);
 
   app.get('/health', (_request, response) => {
     response.status(200).json({ status: 'ok' });

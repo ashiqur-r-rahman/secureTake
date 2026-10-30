@@ -35,3 +35,9 @@ The web portal is available at `http://localhost:3000`; the API health endpoint 
 - Never commit `.env` or real credentials.
 - Generate independent, high-entropy values for `JWT_SECRET` and `QR_HMAC_SECRET`.
 - The API starts with restrictive CORS; allowed origins will be configured when the web client is added.
+
+## API workflow
+
+1. A teacher signs in at `POST /api/auth/teacher/login`, creates a session at `POST /api/sessions`, then generates the enrolled-student token batch at `POST /api/sessions/:sessionId/tokens`.
+2. A student signs in at `POST /api/auth/student/login`, enables geolocation, and posts the personal token plus verification context to `POST /api/checkins`.
+3. The teacher reviews `GET /api/reports/:sessionId` and can record an override with `PATCH /api/reports/:sessionId/:studentId`.
