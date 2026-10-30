@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { createQrToken } from '../attendance/qrTokens.js';
 import { pool } from '../db/pool.js';
+import { requireAuth } from '../auth/requireAuth.js';
 
 export const sessionRouter = Router();
-sessionRouter.post('/:sessionId/tokens', async (req, res, next) => {
+sessionRouter.post('/', requireAuth('teacher'), async (req, res, next) => { try { const { courseId, mode = 'lab', latitude, longitude, allowedCidr } = req.body; const { rows:[session] } = await pool.query("INSERT INTO attendance_sessions(course_id,opened_by,mode,beacon_location,allowed_cidr,expires_at) VALUES($1,$2,$3,ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,$6,now()+interval '120 seconds') RETURNING *", [courseId, req.user.sub, mode, longitude, latitude, allowedCidr]); res.status(201).json(session); } catch (e) { next(e); } });
+sessionRouter.post('/:sessionId/tokens', requireAuth('teacher'), async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { rows: students } = await pool.query('SELECT student_id FROM enrollments WHERE course_id = (SELECT course_id FROM attendance_sessions WHERE id = $1)', [sessionId]);
