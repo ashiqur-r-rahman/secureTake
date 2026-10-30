@@ -17,7 +17,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The API health endpoint is available at `http://localhost:5000/health`.
+The web portal is available at `http://localhost:3000`; the API health endpoint is available at `http://localhost:5000/health`.
 
 ## Planned delivery sequence
 
