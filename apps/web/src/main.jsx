@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
-
-function StudentCard({ active, studentId, token }) {
-  return <section className={`card ${active ? 'active' : 'inactive'}`}><b>Status: {active ? 'ACTIVE — GREEN' : 'INACTIVE'}</b><p>ID: {studentId}</p>{active ? <code>{token}</code> : <p>Teacher has not shared an active session.</p>}<small>GPS and network are checked at scan time.</small></section>;
-}
+const api = async (path, options = {}) => { const response = await fetch(`/api${path}`, { headers: { 'content-type': 'application/json', ...options.headers }, ...options }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Request failed'); return body; };
 function App() {
-  const [active, setActive] = useState(false); const [left, setLeft] = useState(120);
-  useEffect(() => { if (!active) return; const timer = setInterval(() => setLeft(value => value ? value - 1 : 0), 1000); return () => clearInterval(timer); }, [active]);
-  return <main><header><h1>SDAS Portal</h1><span>Secure Dynamic Attendance</span></header><section className="toolbar"><b>Active Session: CSE3206 Lab 04</b><span>Time remaining: {String(Math.floor(left / 60)).padStart(2,'0')}:{String(left % 60).padStart(2,'0')}</span><button onClick={() => { setLeft(120); setActive(true); }}>Generate unique QRs</button><button onClick={() => setActive(false)}>Close & edit report</button></section><StudentCard active={active && left > 0} studentId="2203031" token="Personal signed QR token" /></main>;
+  const [studentNumber, setStudentNumber] = useState(''); const [token, setToken] = useState(''); const [location, setLocation] = useState(null); const [message, setMessage] = useState('Sign in with your Student ID.'); const [qr, setQr] = useState(''); const [sessionId, setSessionId] = useState('');
+  const signIn = async e => { e.preventDefault(); try { const result = await api('/auth/student/login', { method:'POST', body:JSON.stringify({studentNumber}) }); setToken(result.token); navigator.geolocation.getCurrentPosition(p => { setLocation({ latitude:p.coords.latitude, longitude:p.coords.longitude }); setMessage('Location verified. Waiting for the teacher session.'); }, () => setMessage('Location permission is required.')); } catch (error) { setMessage(error.message); } };
+  const submit = async () => { try { const result = await api('/checkins', { method:'POST', headers:{authorization:`Bearer ${token}`}, body:JSON.stringify({token:qr,sessionId,location,deviceFingerprint:navigator.userAgent}) }); setMessage(result.accepted ? 'Attendance verified successfully.' : result.error); } catch (error) { setMessage(error.message); } };
+  return <main><header><h1>SDAS Student Portal</h1><span>One ID · One QR · Multi-factor verification</span></header>{!token ? <form className="card" onSubmit={signIn}><label>Student ID<input required value={studentNumber} onChange={e=>setStudentNumber(e.target.value)} /></label><button>Sign in and enable location</button></form> : <section className={`card ${qr ? 'active' : 'inactive'}`}><b>{qr ? 'ACTIVE — GREEN' : 'INACTIVE — RED'}</b><p>{message}</p><label>Session ID<input value={sessionId} onChange={e=>setSessionId(e.target.value)} /></label><label>Personal QR payload<input value={qr} onChange={e=>setQr(e.target.value)} /></label><button disabled={!qr || !location || !sessionId} onClick={submit}>Verify attendance</button></section>}</main>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
